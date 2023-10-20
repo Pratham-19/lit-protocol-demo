@@ -3,13 +3,16 @@ import {
   checkAndSignAuthMessage,
   decryptToString,
   encryptString,
-} from "@lit-protocol/lit-node-client";
-import { useState } from "react";
+} from "lit-node-latest";
+import * as LitJsSdk from "lit-node";
+import { SetStateAction, useState } from "react";
 
 export default function Home() {
   const [cipherText, setCipherText] = useState("");
   const [dataToEncryptHash, setDataToEncryptHash] = useState("");
   const [decryptedData, setDecryptedData] = useState("");
+  const [encryptedStringV2, setEncryptedStringV2] = useState<Blob>();
+  const [encryptedSymmetricKeyV2, setEncryptedSymmetricKeyV2] = useState("");
   const data = {
     name: "test",
     description: "test",
@@ -73,7 +76,7 @@ export default function Home() {
       {
         evmContractConditions,
         authSig,
-        chain: "ethereum",
+        chain,
         dataToEncrypt: JSON.stringify(data),
       },
       litNodeClient
@@ -84,14 +87,7 @@ export default function Home() {
   const decrypt = async () => {
     await litNodeClient.connect();
     const authSig = await checkAndSignAuthMessage({ chain });
-    console.log("jwfsff", {
-      evmContractConditions,
-      ciphertext: cipherText,
-      dataToEncryptHash,
-      authSig,
-      chain,
-    });
-    const decryptedString = decryptToString(
+    decryptToString(
       {
         evmContractConditions,
         ciphertext: cipherText,
@@ -101,12 +97,52 @@ export default function Home() {
       },
       litNodeClient
     )
-      .then((res) => {
+      .then((res: any) => {
         setDecryptedData(res);
       })
-      .catch((e) => console.error(e));
+      .catch((e: any) => console.error(e));
   };
+  const encrpytV2 = async () => {
+    const client = new LitJsSdk.LitNodeClient({
+      alertWhenUnauthorized: false,
+    });
+    await client.connect();
 
+    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain });
+    const { encryptedString, symmetricKey } = await LitJsSdk.encryptString(
+      JSON.stringify(data)
+    );
+    setEncryptedStringV2(encryptedString);
+    const encryptedSymmetricKey = await client.saveEncryptionKey({
+      evmContractConditions,
+      symmetricKey,
+      authSig,
+      chain,
+    });
+    console.log(encryptedString, encryptedSymmetricKey);
+    // setEncryptedSymmetricKeyV2(encryptedSymmetricKey);
+  };
+  const decrpytV2 = async () => {
+    const client = new LitJsSdk.LitNodeClient({
+      network: "serrano",
+    });
+    await client.connect();
+    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain });
+
+    const symmetricKey = await client.getEncryptionKey({
+      evmContractConditions,
+      toDecrypt: encryptedSymmetricKeyV2,
+      chain,
+      authSig,
+    });
+
+    const decryptedString = await LitJsSdk.decryptString(
+      encryptedStringV2 as Blob,
+      symmetricKey
+    );
+
+    console.log(decryptedString);
+  };
   return (
     <main className="mx-auto mt-10  text-center">
       <h2>Encrpyt & Decrypt Data on the Blockchain with Lit</h2>
@@ -135,16 +171,28 @@ export default function Home() {
       </div>
       <div className="flex justify-center items-center space-x-9">
         <button
+          onClick={encrpytV2}
+          className="bg-white p-3 rounded-xl mt-10 text-black"
+        >
+          Encrypt V2
+        </button>
+        <button
           onClick={encrypt}
           className="bg-white p-3 rounded-xl mt-10 text-black"
         >
-          Encrypt
+          Encrypt V3
+        </button>
+        <button
+          onClick={decrpytV2}
+          className="bg-white p-3 rounded-xl mt-10 text-black"
+        >
+          Decrypt V2
         </button>
         <button
           onClick={decrypt}
           className="bg-white p-3 rounded-xl mt-10 text-black"
         >
-          Decrypt
+          Decrypt V3
         </button>
       </div>
     </main>
