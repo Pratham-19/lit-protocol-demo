@@ -61,6 +61,7 @@ export default function Home() {
       },
     },
   ];
+
   const litNodeClient = new LitNodeClient({
     alertWhenUnauthorized: false,
     litNetwork: "cayenne",
@@ -106,6 +107,7 @@ export default function Home() {
     const client = new LitJsSdk.LitNodeClient({
       alertWhenUnauthorized: false,
     });
+    // const abc = new LitJsSdk.LitC
     await client.connect();
 
     const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain });
@@ -118,14 +120,15 @@ export default function Home() {
       symmetricKey,
       authSig,
       chain,
+      permanant: true,
     });
-    console.log(encryptedString, encryptedSymmetricKey);
-    // setEncryptedSymmetricKeyV2(encryptedSymmetricKey);
+    console.log(encryptedString);
+    setEncryptedSymmetricKeyV2(
+      LitJsSdk.uint8arrayToString(encryptedSymmetricKey, "base16")
+    );
   };
   const decrpytV2 = async () => {
-    const client = new LitJsSdk.LitNodeClient({
-      network: "serrano",
-    });
+    const client = new LitJsSdk.LitNodeClient({});
     await client.connect();
     const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain });
 
