@@ -9,6 +9,7 @@ import { useState } from "react";
 export default function Home() {
   const [cipherText, setCipherText] = useState("");
   const [dataToEncryptHash, setDataToEncryptHash] = useState("");
+  const [decryptedData, setDecryptedData] = useState("");
   const data = {
     name: "test",
     description: "test",
@@ -19,7 +20,7 @@ export default function Home() {
 
   const evmContractConditions = [
     {
-      conditionType: "evmContract",
+      // conditionType: "evmContract",
       contractAddress: "0xF657A4950aa10Cf64ccCCE49AAB0b04eDB0D0b9b",
       functionName: "canUserDecrypt",
       functionParams: [":userAddress", "8"],
@@ -97,6 +98,7 @@ export default function Home() {
       },
       litNodeClient
     );
+    // setDecryptedData(decryptedString as string);
     console.log(decryptedString);
   };
 
@@ -122,7 +124,7 @@ export default function Home() {
         <div className="flex flex-col justify-center items-center space-y-4">
           <h3 className="mt-10">Decrypted Data</h3>
           <pre className="bg-slate-600 rounded-xl w-fit p-3">
-            {JSON.stringify(data, null, 1)}
+            {JSON.stringify(decryptedData, null, 1)}
           </pre>
         </div>
       </div>
